@@ -17,7 +17,11 @@ export function FlashcardsPage() {
           </p>
         </div>
 
-        <FlashcardsForm onSubmit={generate} loading={loading} />
+        <FlashcardsForm
+          onSubmit={generate}
+          loading={loading}
+          serverErrors={errorDetails}
+        />
 
         <p className='text-xs text-center text-[#4c9a9a] mt-2'>
           Tip: Provide a specific topic for better results.

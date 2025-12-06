@@ -24,10 +24,14 @@ export function useFlashcards() {
     } catch (err) {
       if (err instanceof JSendFailError) {
         setErrorMessage('Hay errores en los datos enviados.');
-        setErrorDetails(err.data as Record<string, unknown>);
+        setErrorDetails(
+          (err.data as { messages?: Record<string, unknown> })?.messages || null
+        );
       } else if (err instanceof JSendServerError) {
         setErrorMessage(`Error del servidor: ${err.message}`);
-        setErrorDetails(err.data as Record<string, unknown>);
+        setErrorDetails(
+          (err.data as { messages?: Record<string, unknown> })?.messages || null
+        );
       } else if (err instanceof Error) {
         setErrorMessage(err.message);
       } else {

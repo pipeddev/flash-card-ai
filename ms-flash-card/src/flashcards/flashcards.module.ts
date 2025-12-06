@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { FlashcardsController } from './interface/flashcards.controller';
 import { GenerateDeckUseCase } from './application/use-cases/generate-deck.uc';
 import { DeckInMemoryRepository } from './infrastructure/persistence/deck-inmemory.repository';
+import { ValidatorUtils } from 'src/shared/utils/validator.utils';
 
 @Module({
   controllers: [FlashcardsController],
@@ -12,6 +13,7 @@ import { DeckInMemoryRepository } from './infrastructure/persistence/deck-inmemo
       provide: 'DeckRepository',
       useExisting: DeckInMemoryRepository,
     },
+    ValidatorUtils,
   ],
 })
 export class FlashcardsModule {}

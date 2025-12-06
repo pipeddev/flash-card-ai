@@ -5,6 +5,7 @@ import { AiProvider } from 'src/flashcards/domain/enums/ai-provider.enum';
 import { AiProviderFactory } from 'src/flashcards/infrastructure/ai/ai-provider.factory';
 import { Difficulty } from 'src/flashcards/domain/types/flashcard.types';
 import { v4 as uuid } from 'uuid';
+import { ValidatorUtils } from '../../../shared/utils/validator.utils';
 
 export interface GenerateDeckCommand {
   topic: string;
@@ -17,9 +18,11 @@ export class GenerateDeckUseCase {
   constructor(
     @Inject('DeckRepository')
     private readonly deckRepository: deckRepository.DeckRepository,
+    private readonly validatorUtils: ValidatorUtils,
   ) {}
 
   async execute(command: GenerateDeckCommand): Promise<Deck> {
+    await this.validatorUtils.validateOrThrowBusinessError(command);
     const aiProvider = AiProviderFactory.create(command.provider);
 
     const cards = await aiProvider.generateFlashcards(

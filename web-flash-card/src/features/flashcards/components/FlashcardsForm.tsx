@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import type { Difficulty } from '../types';
 import { generateDeckSchema, type GenerateDeckInput } from '../schemas';
@@ -7,17 +7,37 @@ import type { ZodFormErrors } from '@/shared/validation/zod-helpers';
 interface FlashcardsFormProps {
   onSubmit: (input: GenerateDeckInput) => void;
   loading?: boolean;
+  serverErrors?: Record<string, unknown> | null;
 }
 
 const difficulties: Difficulty[] = ['basic', 'intermediate', 'advanced'];
 
-export function FlashcardsForm({ onSubmit, loading }: FlashcardsFormProps) {
+export function FlashcardsForm({
+  onSubmit,
+  loading,
+  serverErrors,
+}: FlashcardsFormProps) {
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState<Difficulty>('intermediate');
-  const [provider, setProvider] = useState<'gemini' | 'openai'>('gemini');
-  const [errors, setErrors] = useState<
+  const [provider, setProvider] = useState<'gemini' | 'openai'>();
+  const [localErrors, setLocalErrors] = useState<
     ZodFormErrors<typeof generateDeckSchema>
   >({});
+
+  const errors = useMemo<ZodFormErrors<typeof generateDeckSchema>>(() => {
+    const formattedServerErrors: ZodFormErrors<typeof generateDeckSchema> = {};
+
+    if (serverErrors) {
+      for (const [field, message] of Object.entries(serverErrors)) {
+        if (typeof message === 'string') {
+          formattedServerErrors[field as keyof typeof formattedServerErrors] =
+            message.split('|').join(', ');
+        }
+      }
+    }
+
+    return { ...formattedServerErrors, ...localErrors };
+  }, [serverErrors, localErrors]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -34,11 +54,11 @@ export function FlashcardsForm({ onSubmit, loading }: FlashcardsFormProps) {
         const field = issue.path[0] as keyof typeof fieldErrors;
         if (!fieldErrors[field]) fieldErrors[field] = issue.message;
       }
-      setErrors(fieldErrors);
+      setLocalErrors(fieldErrors);
       return;
     }
 
-    setErrors({});
+    setLocalErrors({});
     onSubmit(result.data);
   };
 
