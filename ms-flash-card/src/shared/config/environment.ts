@@ -10,6 +10,10 @@ export const Environment = {
   OPENAI_API_KEY: String(process.env.OPENAI_API_KEY ?? ''),
   OPENAI_MODEL: process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
 
+  // Google Gemini API
+  GEMINI_API_KEY: String(process.env.GEMINI_API_KEY ?? ''),
+  GEMINI_MODEL: process.env.GEMINI_MODEL ?? 'gemini-3-pro-preview',
+
   // JWT (Auth)
   JWT_SECRET: process.env.JWT_SECRET ?? 'super_secret_key_change_me',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '1h',

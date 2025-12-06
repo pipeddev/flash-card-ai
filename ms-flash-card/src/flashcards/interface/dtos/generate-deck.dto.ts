@@ -1,4 +1,5 @@
-import { IsIn, IsNotEmpty, IsString } from 'class-validator';
+import { IsEnum, IsIn, IsNotEmpty, IsString } from 'class-validator';
+import { AiProvider } from 'src/flashcards/domain/enums/ai-provider.enum';
 
 export class GenerateDeckDto {
   @IsString()
@@ -7,4 +8,8 @@ export class GenerateDeckDto {
 
   @IsIn(['basic', 'intermediate', 'advanced'])
   difficulty: 'basic' | 'intermediate' | 'advanced';
+
+  @IsEnum(AiProvider)
+  @IsNotEmpty({ message: 'AI provider is required' })
+  provider: AiProvider;
 }

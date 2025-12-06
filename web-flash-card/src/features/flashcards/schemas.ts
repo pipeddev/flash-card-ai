@@ -8,6 +8,9 @@ export const generateDeckSchema = z.object({
   difficulty: z.enum(['basic', 'intermediate', 'advanced'], {
     message: 'La dificultad es requerida.',
   }),
+  provider: z.enum(['openai', 'gemini'], {
+    message: 'El Model AI es requerido.',
+  }),
 });
 
 export type GenerateDeckInput = z.infer<typeof generateDeckSchema>;
