@@ -14,7 +14,7 @@ export class OpenAiFlashcardsService implements AIFlashcardsProvider {
 
   constructor() {
     this.client = new OpenAI({
-      apiKey: Environment.OPENAI_API_KEY || process.env.OPENAI_API_KEY!,
+      apiKey: Environment.OPENAI_API_KEY,
     });
   }
 
