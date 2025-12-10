@@ -18,6 +18,7 @@ export function useFlashcards() {
       setLoading(true);
       setErrorMessage(null);
       setErrorDetails(null);
+      setDeck(null);
 
       const newDeck = await generateDeck(input);
       setDeck(newDeck);
