@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common';
 import { FlashcardsController } from './interface/flashcards.controller';
 import { GenerateDeckUseCase } from './application/use-cases/generate-deck.uc';
-import { OpenAiFlashcardsService } from './infrastructure/ai/openai-flashcards.service';
 import { DeckInMemoryRepository } from './infrastructure/persistence/deck-inmemory.repository';
+import { ValidatorUtils } from 'src/shared/utils/validator.utils';
 
 @Module({
   controllers: [FlashcardsController],
   providers: [
     GenerateDeckUseCase,
-    OpenAiFlashcardsService,
     DeckInMemoryRepository,
     {
       provide: 'DeckRepository',
       useExisting: DeckInMemoryRepository,
     },
+    ValidatorUtils,
   ],
 })
 export class FlashcardsModule {}

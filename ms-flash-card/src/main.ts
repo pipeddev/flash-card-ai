@@ -15,6 +15,12 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
 
+  // Habilitar CORS
+  app.enableCors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  });
+
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalPipes(new TransformPlainToInstancePipe());
 

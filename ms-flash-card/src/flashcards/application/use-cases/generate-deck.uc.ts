@@ -1,24 +1,31 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Deck } from 'src/flashcards/domain/entities/deck.entity';
 import * as deckRepository from 'src/flashcards/domain/repositories/deck.repository';
-import { OpenAiFlashcardsService } from 'src/flashcards/infrastructure/ai/openai-flashcards.service';
+import { AiProvider } from 'src/flashcards/domain/enums/ai-provider.enum';
+import { AiProviderFactory } from 'src/flashcards/infrastructure/ai/ai-provider.factory';
+import { Difficulty } from 'src/flashcards/domain/types/flashcard.types';
 import { v4 as uuid } from 'uuid';
+import { ValidatorUtils } from '../../../shared/utils/validator.utils';
 
 export interface GenerateDeckCommand {
   topic: string;
-  difficulty: 'basic' | 'intermediate' | 'advanced';
+  difficulty: Difficulty;
+  provider: AiProvider;
 }
 
 @Injectable()
 export class GenerateDeckUseCase {
   constructor(
-    private readonly aiService: OpenAiFlashcardsService,
     @Inject('DeckRepository')
     private readonly deckRepository: deckRepository.DeckRepository,
+    private readonly validatorUtils: ValidatorUtils,
   ) {}
 
   async execute(command: GenerateDeckCommand): Promise<Deck> {
-    const cards = await this.aiService.generateFlashcards(
+    await this.validatorUtils.validateOrThrowBusinessError(command);
+    const aiProvider = AiProviderFactory.create(command.provider);
+
+    const cards = await aiProvider.generateFlashcards(
       command.topic,
       command.difficulty,
     );

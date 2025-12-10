@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import OpenAI from 'openai';
+import { GoogleGenAI } from '@google/genai';
 import { AIFlashcardsProvider } from 'src/flashcards/domain/providers/ai-flashcards.provider';
 import { Environment } from 'src/shared/config/environment';
 import {
@@ -9,13 +9,11 @@ import {
 import { Flashcard } from 'src/flashcards/domain/entities/flashcard.entity';
 
 @Injectable()
-export class OpenAiFlashcardsService implements AIFlashcardsProvider {
-  private readonly client: OpenAI;
+export class GeminiFlashcardsService implements AIFlashcardsProvider {
+  private readonly client: GoogleGenAI;
 
   constructor() {
-    this.client = new OpenAI({
-      apiKey: Environment.OPENAI_API_KEY,
-    });
+    this.client = new GoogleGenAI({ apiKey: Environment.GEMINI_API_KEY });
   }
 
   async generateFlashcards(
@@ -27,7 +25,9 @@ Genera entre 5 y 8 flashcards de estudio sobre el tema: "${topic}".
 
 Dificultad: ${difficulty}.
 
-Formato JSON:
+RESPONDE ESTRICTAMENTE EN JSON VÁLIDO.
+
+Formato EXACTO:
 [
   {
     "question": "....",
@@ -36,18 +36,17 @@ Formato JSON:
     "tag": "concept|example|use-case|warning|tip"
   }
 ]
-No incluyas texto fuera del JSON.
+
+No escribas nada de texto adicional, ni comentarios, ni markdown, ni bloques de código. SOLO el JSON.
     `;
 
-    const completion = await this.client.chat.completions.create({
-      model: Environment.OPENAI_MODEL || 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.7,
+    const response = await this.client.models.generateContent({
+      model: Environment.GEMINI_MODEL,
+      contents: prompt,
     });
+    const text = response.text ?? '[]';
 
-    const content = completion.choices[0]?.message?.content ?? '[]';
-
-    return this.parseFlashcards(content);
+    return this.parseFlashcards(text);
   }
 
   private parseFlashcards(content: string): Flashcard[] {
