@@ -54,3 +54,71 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Archivos de configuración con credenciales
+config/local.json
+config/secret*.json
+config/credentials*.json
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+
+# Archivos de base de datos
+*.sqlite
+*.sqlite3
+*.db
+
+# Backups y dumps
+*.sql
+*.dump
+*.backup
+
+# Variables de entorno adicionales
+.env.*
+!.env.example
+!.env.sample
+
+# Archivos de secretos de servicios cloud
+*-credentials.json
+serviceAccountKey.json
+firebase-adminsdk*.json
+gcp-key*.json
+aws-credentials.json
+
+# Archivos de sesión y tokens
+.session
+*.session
+tokens.json
+refresh-token.json
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+**/.terraform/*
+.terraform.lock.hcl
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Terraform secrets
+terraform.tfvars
+terraform.tfvars.json
+secret.tfvars
+secrets.tfvars
+*.auto.tfvars
+*.auto.tfvars.json
+
+# Terraform plan files
+*.tfplan
+*.tfplan.*
+plan.out
