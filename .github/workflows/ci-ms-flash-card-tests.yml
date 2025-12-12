@@ -1,0 +1,44 @@
+name: CI - ms-flash-card tests
+
+on:
+  pull_request:
+    paths:
+      - "ms-flash-card/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "ms-flash-card/**"
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+
+    # Todas las ejecuciones se hacen dentro de ms-flash-card
+    defaults:
+      run:
+        working-directory: ms-flash-card
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Enable corepack (pnpm)
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Opcional: lint
+      - name: Run lint
+        run: pnpm lint
+
+      # Unit tests
+      - name: Run unit tests
+        run: pnpm test
