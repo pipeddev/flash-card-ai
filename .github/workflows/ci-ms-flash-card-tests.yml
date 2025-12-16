@@ -1,4 +1,4 @@
-name: CI - ms-flash-card tests
+name: CI - Feature Validation
 
 on:
   pull_request:
@@ -19,31 +19,30 @@ jobs:
   test-backend:
     runs-on: ubuntu-latest
 
-    # Todas las ejecuciones se hacen dentro de ms-flash-card
     defaults:
       run:
         working-directory: ms-flash-card
 
     steps:
-      - name: Checkout repo
+      - name: 🧩 Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: ⚙️ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
-          cache: "pnpm"
+          node-version: 22 # 👈 SIN cache: pnpm
 
-      - name: Enable corepack (pnpm)
-        run: corepack enable
+      - name: 📦 Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false # instalamos deps en el siguiente paso
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Opcional: lint
-      - name: Run lint
+      - name: 🧹 Run ESLint
         run: pnpm lint
 
-      # Unit tests
-      - name: Run unit tests
+      - name: 🧪 Run Jest tests
         run: pnpm test
