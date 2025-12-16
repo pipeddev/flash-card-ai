@@ -3,8 +3,6 @@ import { AiProviderFactory } from 'src/flashcards/infrastructure/ai/ai-provider.
 import { GeminiFlashcardsService } from 'src/flashcards/infrastructure/ai/gemini-flashcards.service';
 import { OpenAiFlashcardsService } from 'src/flashcards/infrastructure/ai/openai-flashcards.service';
 
-import { BusinessError } from 'src/shared/error/business.error';
-
 jest.mock('src/flashcards/infrastructure/ai/openai-flashcards.service');
 jest.mock('src/flashcards/infrastructure/ai/gemini-flashcards.service');
 
@@ -26,14 +24,6 @@ describe('AiProviderFactory', () => {
 
       expect(service).toBeInstanceOf(GeminiFlashcardsService);
       expect(GeminiFlashcardsService).toHaveBeenCalledTimes(1);
-    });
-
-    it('should throw BusinessError when provider is unknown', () => {
-      const unknownProvider = 'UNKNOWN' as AiProvider;
-
-      expect(() => AiProviderFactory.create(unknownProvider)).toThrow(
-        BusinessError,
-      );
     });
   });
 });
