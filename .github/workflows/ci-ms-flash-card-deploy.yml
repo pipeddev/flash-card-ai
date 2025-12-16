@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - develop
     paths:
       - "ms-flash-card/**"
 
@@ -47,6 +48,6 @@ jobs:
             --set-env-vars \
               OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }},\
               GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},\
-              GEMINI_MODEL=${{ secrets.GEMINI_MODEL }},\
-              OPENAI_MODEL=${{ secrets.OPENAI_MODEL }},\
+              GEMINI_MODEL=${{ vars.GEMINI_MODEL }},\
+              OPENAI_MODEL=${{ vars.OPENAI_MODEL }},\
               NODE_ENV=production
