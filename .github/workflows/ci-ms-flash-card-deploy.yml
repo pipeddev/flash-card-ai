@@ -1,0 +1,52 @@
+name: CD - Deploy ms-flash-card
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "ms-flash-card/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write # 👈 necesario para WIF
+
+    defaults:
+      run:
+        working-directory: ms-flash-card
+
+    steps:
+      - name: 🧩 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔐 Auth to GCP (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: ⚙️ Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: 🐳 Build & Push image
+        run: |
+          gcloud builds submit \
+            --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/ms-flash-card
+
+      - name: 🚀 Deploy to Cloud Run
+        run: |
+          gcloud run deploy ms-flash-card \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/ms-flash-card \
+            --region ${{ secrets.GCP_REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-env-vars \
+              OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }},\
+              GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},\
+              GEMINI_MODEL=${{ secrets.GEMINI_MODEL }},\
+              OPENAI_MODEL=${{ secrets.OPENAI_MODEL }},\
+              NODE_ENV=production
