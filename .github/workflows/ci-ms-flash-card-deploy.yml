@@ -1,6 +1,13 @@
 name: CD - Deploy ms-flash-card
 
 on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "ms-flash-card/**"
+      - ".github/workflows/**"
   push:
     branches:
       - main
