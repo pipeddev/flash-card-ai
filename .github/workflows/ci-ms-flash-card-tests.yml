@@ -2,16 +2,12 @@ name: CI - Feature Validation
 
 on:
   pull_request:
-    branches:
-      - main
-      - develop
+    branches: [main, develop]
     paths:
       - "ms-flash-card/**"
       - ".github/workflows/**"
   push:
-    branches:
-      - main
-      - develop
+    branches: [main, develop]
     paths:
       - "ms-flash-card/**"
 
@@ -24,25 +20,17 @@ jobs:
         working-directory: ms-flash-card
 
     steps:
-      - name: 🧩 Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: ⚙️ Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22 # 👈 SIN cache: pnpm
+          node-version: 22
 
-      - name: 📦 Install pnpm
-        uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v3
         with:
           version: 9
-          run_install: false # instalamos deps en el siguiente paso
+          run_install: false
 
-      - name: 📦 Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: 🧹 Run ESLint
-        run: pnpm lint
-
-      - name: 🧪 Run Jest tests
-        run: pnpm test
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm test

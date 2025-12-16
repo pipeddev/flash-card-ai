@@ -1,1 +1,2 @@
-minimumRelease: 1440 # 24 hours
+packages:
+- "."
