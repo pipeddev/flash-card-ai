@@ -35,13 +35,25 @@ jobs:
       - name: ⚙️ Setup gcloud
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: 🐳 Build image (async) + wait
+      - name: 🐳 Build & Push image (async + poll)
         run: |
           BUILD_ID=$(gcloud builds submit \
             --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/ms-flash-card \
             --format="value(id)" \
             --async)
-          gcloud builds wait "$BUILD_ID"
+
+          echo "Build ID: $BUILD_ID"
+
+          while true; do
+            STATUS=$(gcloud builds describe "$BUILD_ID" --format="value(status)")
+            echo "Build status: $STATUS"
+            if [[ "$STATUS" == "SUCCESS" ]]; then
+              break
+            elif [[ "$STATUS" == "FAILURE" || "$STATUS" == "CANCELLED" || "$STATUS" == "TIMEOUT" ]]; then
+              exit 1
+            fi
+            sleep 5
+          done
 
       - name: 🚀 Deploy to Cloud Run
         run: |
