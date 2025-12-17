@@ -62,6 +62,7 @@ jobs:
             --region ${{ secrets.GCP_REGION }} \
             --platform managed \
             --allow-unauthenticated \
+            --port 3000
             --set-env-vars OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} \
             --set-env-vars GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} \
             --set-env-vars GEMINI_MODEL=${{ vars.GEMINI_MODEL }} \
