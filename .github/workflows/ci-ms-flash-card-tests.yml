@@ -6,11 +6,6 @@ on:
     paths:
       - "ms-flash-card/**"
       - ".github/workflows/**"
-  push:
-    branches: [develop]
-    paths:
-      - "ms-flash-card/**"
-      - ".github/workflows/**"
 
 jobs:
   test-backend:
