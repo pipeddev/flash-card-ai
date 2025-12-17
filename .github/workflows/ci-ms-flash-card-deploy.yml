@@ -35,10 +35,13 @@ jobs:
       - name: ⚙️ Setup gcloud
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: 🐳 Build & Push image
+      - name: 🐳 Build image (async) + wait
         run: |
-          gcloud builds submit \
-            --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/ms-flash-card
+          BUILD_ID=$(gcloud builds submit \
+            --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/ms-flash-card \
+            --format="value(id)" \
+            --async)
+          gcloud builds wait "$BUILD_ID"
 
       - name: 🚀 Deploy to Cloud Run
         run: |
