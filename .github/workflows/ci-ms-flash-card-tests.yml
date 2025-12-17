@@ -1,15 +1,11 @@
 name: CI - Feature Validation
 
 on:
-  pull_request:
-    branches: [main, develop]
+  push:
+    branches: [develop]
     paths:
       - "ms-flash-card/**"
       - ".github/workflows/**"
-  push:
-    branches: [main, develop]
-    paths:
-      - "ms-flash-card/**"
 
 jobs:
   test-backend:
