@@ -62,9 +62,8 @@ jobs:
             --region ${{ secrets.GCP_REGION }} \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars \
-              OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }},\
-              GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},\
-              GEMINI_MODEL=${{ vars.GEMINI_MODEL }},\
-              OPENAI_MODEL=${{ vars.OPENAI_MODEL }},\
-              NODE_ENV=production
+            --set-env-vars OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} \
+            --set-env-vars GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} \
+            --set-env-vars GEMINI_MODEL=${{ vars.GEMINI_MODEL }} \
+            --set-env-vars OPENAI_MODEL=${{ vars.OPENAI_MODEL }} \
+            --set-env-vars NODE_ENV=production
