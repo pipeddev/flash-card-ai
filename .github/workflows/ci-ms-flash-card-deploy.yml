@@ -35,36 +35,29 @@ jobs:
       - name: ⚙️ Setup gcloud
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: 🐳 Build & Push image (async + poll)
+      - name: 🐳 Build & Push image (Artifact Registry)
         run: |
-          BUILD_ID=$(gcloud builds submit \
-            --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/ms-flash-card \
-            --format="value(id)" \
-            --async)
+          IMAGE="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ vars.REPO_IMAGE }}/ms-flash-card:${{ github.sha }}"
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
-          echo "Build ID: $BUILD_ID"
+          gcloud builds submit --tag "$IMAGE" --async
 
+          # Poll hasta SUCCESS (tu loop actual sirve)
+          BUILD_ID=$(gcloud builds list --filter="images:$IMAGE" --sort-by=~createTime --limit=1 --format="value(id)")
           while true; do
             STATUS=$(gcloud builds describe "$BUILD_ID" --format="value(status)")
             echo "Build status: $STATUS"
-            if [[ "$STATUS" == "SUCCESS" ]]; then
-              break
-            elif [[ "$STATUS" == "FAILURE" || "$STATUS" == "CANCELLED" || "$STATUS" == "TIMEOUT" ]]; then
-              exit 1
-            fi
+            [[ "$STATUS" == "SUCCESS" ]] && break
+            [[ "$STATUS" == "FAILURE" || "$STATUS" == "CANCELLED" || "$STATUS" == "TIMEOUT" ]] && exit 1
             sleep 5
           done
 
       - name: 🚀 Deploy to Cloud Run
         run: |
           gcloud run deploy ms-flash-card \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/ms-flash-card \
+            --image "$IMAGE" \
             --region ${{ secrets.GCP_REGION }} \
             --platform managed \
             --allow-unauthenticated \
-            --port 3000
-            --set-env-vars OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} \
-            --set-env-vars GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} \
-            --set-env-vars GEMINI_MODEL=${{ vars.GEMINI_MODEL }} \
-            --set-env-vars OPENAI_MODEL=${{ vars.OPENAI_MODEL }} \
-            --set-env-vars NODE_ENV=production
+            --port 3000 \
+            --set-env-vars "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }},GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},GEMINI_MODEL=${{ vars.GEMINI_MODEL }},OPENAI_MODEL=${{ vars.OPENAI_MODEL }},NODE_ENV=production"
