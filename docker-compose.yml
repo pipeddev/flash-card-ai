@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./ms-flash-card
+    image: ms-flash-card
+    container_name: ms-flash-card
+    env_file:
+      - ./ms-flash-card/.env
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./web-flash-card
+    image: web-flash-card
+    container_name: web-flash-card
+    env_file:
+      - ./web-flash-card/.env
+    ports:
+      - "8081:8080"
+    depends_on:
+      - backend
+    restart: unless-stopped
