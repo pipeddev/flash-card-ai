@@ -17,8 +17,14 @@ async function bootstrap() {
 
   // Habilitar CORS
   app.enableCors({
-    origin: 'http://localhost:5173',
-    credentials: true,
+    origin: [
+      'http://localhost:8081',
+      'http://localhost:5173',
+      'https://flash-card-e67ed.web.app',
+      'https://flash-card-e67ed.firebaseapp.com',
+    ],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   app.useGlobalFilters(new GlobalExceptionFilter());
