@@ -1,10 +1,8 @@
-## 🎤 Karaoke Finder – Microservicio Backend
+## � ms-flash-card – Microservicio Backend
 
-[![CI - Feature Validation](https://github.com/pipeddev/ms-karaoke-finder/actions/workflows/ci-feature-validation.yml/badge.svg)](https://github.com/pipeddev/ms-karaoke-finder/actions/workflows/ci-feature-validation.yml)
+**ms-flash-card** es un microservicio backend desarrollado con **NestJS** bajo una arquitectura **Clean + Hexagonal**, que permite generar mazos de flashcards de estudio usando modelos de **IA generativa** (OpenAI GPT y Google Gemini), con autenticación JWT por dispositivo.
 
-**Karaoke Finder** es un microservicio backend desarrollado con **NestJS** bajo una arquitectura **Clean + Hexagonal**, que permite buscar canciones y playlists utilizando la **API pública de Spotify**, aplicando buenas prácticas de diseño, caching distribuido y validación robusta.
-
-Este servicio está optimizado para ejecución en **Google Cloud Run**, con pipeline CI/CD en **GitHub Actions** que valida calidad, pruebas y cobertura antes de cada merge.
+El servicio está optimizado para ejecución en **Google Cloud Run**, con pipeline CI/CD en **GitHub Actions** que valida calidad, pruebas y cobertura antes de cada merge.
 
 ---
 
@@ -14,47 +12,115 @@ El proyecto implementa principios de **Domain-Driven Design (DDD)**, **Clean Arc
 
 ```
 src/
-├─ auth/                     # Módulo de autenticación (token JWT por dispositivo)
-│   ├─ application/          # Casos de uso
-│   ├─ domain/               # Entidades del dominio
-│   ├─ infrastructure/       # Adaptadores externos (JWT)
-│   └─ interface/            # Controladores y DTOs de entrada/salida
+├─ auth/                     # Módulo de autenticación JWT por deviceId
+│   ├─ application/          # Caso de uso: IssueTokenUseCase
+│   ├─ domain/               # Entidad DeviceEntity, repositorio abstracto
+│   ├─ infrastructure/       # Adaptador JWT (JwtAuthService)
+│   └─ interface/            # AuthController + IssueTokenDto
 │
-├─ karaoke/                  # Módulo principal del dominio Karaoke
-│   ├─ application/          # Casos de uso (use-cases)
-│   ├─ domain/               # Entidades y repositorios abstractos
-│   ├─ infrastructure/       # Adaptadores externos (Spotify API, Redis)
-│   └─ interface/            # Controladores HTTP + DTOs
+├─ flashcards/               # Módulo principal del dominio FlashCards
+│   ├─ application/          # Caso de uso: GenerateDeckUseCase
+│   ├─ domain/               # Entidades (Deck, Flashcard), enums, repositorios
+│   ├─ infrastructure/       # Adaptadores IA (OpenAI, Gemini) + repo en memoria
+│   └─ interface/            # FlashcardsController + GenerateDeckDto
 │
-├─ shared/                   # Utilidades, logger, pipes, filtros, helpers comunes
+├─ health/                   # Health check del servicio
+├─ shared/                   # Logger, pipes, filtros, decoradores, utils comunes
 │
 ├─ app.module.ts             # Módulo raíz de NestJS
-├─ main.ts                   # Bootstrap principal (FastifyAdapter)
+├─ main.ts                   # Bootstrap (FastifyAdapter + CORS + versionado URI)
 └─ constant.ts               # Constantes globales
 ```
 
 📘 **Principios aplicados:**
 
 - **Clean Architecture:** cada capa tiene una responsabilidad única.
-- **Hexagonal (Ports & Adapters):** separación entre el dominio y las integraciones externas.
-- **DDD:** el dominio define las reglas, independiente del framework.
-- **Inyección de dependencias:** los adaptadores se proveen a través de interfaces.
+- **Hexagonal (Ports & Adapters):** el dominio no depende de frameworks ni proveedores externos.
+- **DDD:** las entidades y reglas de negocio son independientes de la infraestructura.
+- **Inyección de dependencias:** los adaptadores se registran a través de tokens de interfaz.
 
 ---
 
-## 🧠 Diagrama de Arquitectura
+## 🤖 Proveedores de IA
 
-![Architecture](https://github.com/pipeddev/ms-karaoke-finder/blob/develop/docs/architecture.png)
+El servicio soporta múltiples proveedores de IA para la generación de flashcards, seleccionables por solicitud:
+
+| Provider | Modelo por defecto     | Enum     |
+| -------- | ---------------------- | -------- |
+| OpenAI   | `gpt-4o-mini`          | `openai` |
+| Google   | `gemini-3-pro-preview` | `gemini` |
+
+La selección se realiza mediante el patrón **Factory** (`AiProviderFactory`).
+
+---
+
+## 🌐 Endpoints de la API
+
+El versionado de la API usa prefijo URI: `/api/v{version}`.
+
+### Auth
+
+| Método | Ruta                 | Descripción                            | Auth |
+| ------ | -------------------- | -------------------------------------- | ---- |
+| `POST` | `/api/v1/auth/token` | Emite un JWT asociado a un dispositivo | ❌   |
+
+**Body `POST /auth/token`:**
+
+```json
+{
+  "deviceId": "uuid-v4-del-dispositivo"
+}
+```
+
+### Flashcards
+
+| Método | Ruta                          | Descripción                         | Auth |
+| ------ | ----------------------------- | ----------------------------------- | ---- |
+| `POST` | `/api/v1/flashcards/generate` | Genera un mazo de flashcards con IA | ✅   |
+| `GET`  | `/api/v1/flashcards/:id`      | Obtiene un mazo por su ID           | ✅   |
+
+**Body `POST /flashcards/generate`:**
+
+```json
+{
+  "topic": "Historia de Roma",
+  "difficulty": "intermediate",
+  "provider": "openai"
+}
+```
+
+> `difficulty`: `basic` | `intermediate` | `advanced` > `provider`: `openai` | `gemini`
+
+**Respuesta (JSend):**
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "uuid",
+    "topic": "Historia de Roma",
+    "difficulty": "intermediate",
+    "cards": [
+      {
+        "question": "¿En qué año cayó el Imperio Romano de Occidente?",
+        "answer": "476 d.C.",
+        "difficulty": "intermediate",
+        "tag": "historia"
+      }
+    ]
+  }
+}
+```
+
+### Health
+
+| Método | Ruta             | Descripción         |
+| ------ | ---------------- | ------------------- |
+| `GET`  | `/api/v1/health` | Estado del servicio |
 
 ---
 
 ## 🔀 GitFlow Simplificado
-
-El proyecto sigue un flujo de ramas que prioriza la estabilidad en producción y la validación continua de features antes del merge.
-
-![Gitflow](https://github.com/pipeddev/ms-karaoke-finder/blob/develop/docs/gitflow-model.png)
-
-### 🌿 Ramas activas
 
 - `feature/*` → nuevas funcionalidades
 - `bugfix/*` → correcciones menores
@@ -70,22 +136,33 @@ El proyecto sigue un flujo de ramas que prioriza la estabilidad en producción y
 
 - Node.js ≥ **v22**
 - pnpm ≥ **v9**
-- Spotify API credentials
-- Redis Upstash URL
+- Clave de API de OpenAI y/o Google Gemini
 
 ### 2️⃣ Variables de entorno `.env`
 
 ```bash
-APP_NAME=ms-karaoke-finder
+APP_NAME=ms-flash-card
 APP_PORT=3000
 APP_ENV=development
 
-SPOTIFY_CLIENT_ID=tu_client_id
-SPOTIFY_CLIENT_SECRET=tu_secret
-SPOTIFY_TOKEN_URL=https://accounts.spotify.com/api/token
-SPOTIFY_SEARCH_URL=https://api.spotify.com/v1/search
+# OpenAI
+OPENAI_API_KEY=tu_openai_api_key
+OPENAI_MODEL=gpt-4o-mini
 
-REDIS_URL=tu_upstash_url
+# Google Gemini
+GEMINI_API_KEY=tu_gemini_api_key
+GEMINI_MODEL=gemini-3-pro-preview
+
+# JWT
+JWT_SECRET=super_secret_key_change_me
+JWT_EXPIRES_IN=1h
+
+# Rate Limiting
+RATE_LIMIT_TTL=60
+RATE_LIMIT_LIMIT=100
+
+# Logging
+LOG_LEVEL=debug
 ```
 
 ### 3️⃣ Instalación
@@ -101,16 +178,54 @@ La aplicación se ejecutará en:
 
 ---
 
+## 🐳 Docker
+
+### Ejecución con Docker Compose (proyecto completo)
+
+```bash
+# Desde la raíz del monorepo
+docker-compose up --build
+```
+
+Servicios levantados:
+
+| Servicio   | Puerto local | Descripción       |
+| ---------- | ------------ | ----------------- |
+| `backend`  | `3000`       | ms-flash-card API |
+| `frontend` | `8081`       | web-flash-card    |
+
+### Ejecución solo del backend
+
+```bash
+# Desde ms-flash-card/
+docker build -t ms-flash-card .
+docker run --env-file .env -p 3000:3000 ms-flash-card
+```
+
+El Dockerfile usa **multi-stage build** (Node.js 22 Alpine):
+
+- **Etapa 1 (builder):** instala dependencias y compila TypeScript.
+- **Etapa 2 (runner):** solo dependencias de producción + `dist/`.
+
+---
+
 ## 🧪 Calidad y Testing
 
 El proyecto usa **Jest** con cobertura mínima exigida de **80%**
 (validada automáticamente por **GitHub Actions** antes de cada merge).
 
 ```bash
+# Tests unitarios
+pnpm test
+
+# Tests con cobertura
 pnpm test:cov
+
+# Tests e2e
+pnpm test:e2e
 ```
 
-📄 **Pipeline:** `.github/workflows/ci-feature-validation.yml`
+📄 **Pipeline CI:** `.github/workflows/ci-feature-validation.yml`
 
 - Lint (ESLint)
 - Tests unitarios
@@ -119,40 +234,27 @@ pnpm test:cov
 
 ---
 
-## ☁️ Despliegue en Cloud Run (en preparación)
+## ☁️ Despliegue en Cloud Run
 
 - Imágenes Docker optimizadas con Node.js 22 + pnpm
-- Despliegue sin estado en Cloud Run
-- Conexión a Redis Upstash y Spotify API
-- Preparado para integración futura con **Cloud Build** y **Terraform**
+- Despliegue sin estado en Google Cloud Run
+- CORS configurado para el frontend en Firebase Hosting
 
----
-
-## 🧭 Próximos pasos
-
-- [ ] Integración CI/CD para `hotfix/*` y `bugfix/*`
-- [ ] Despliegue automático a **Cloud Run (staging)**
-- [ ] Integración con **Firebase Auth** para usuarios móviles
-- [ ] Monitorización con **Cloud Logging** y **Error Reporting**
-- [ ] Documentación API con **Apidog / Swagger**
-- [ ] Métricas Prometheus / OpenTelemetry
-- [ ] Sincronización con **App Android (Karaoke Finder Mobile)**
-
----
 
 ## 🧱 Stack Técnico
 
-| Componente          | Descripción             |
-| ------------------- | ----------------------- |
-| **Framework**       | NestJS + Fastify        |
-| **Lenguaje**        | TypeScript              |
-| **Gestor**          | pnpm                    |
-| **Testing**         | Jest + Coverage         |
-| **CI/CD**           | GitHub Actions          |
-| **Cache**           | Upstash Redis           |
-| **API externa**     | Spotify API             |
-| **Infraestructura** | Google Cloud Run        |
-| **Arquitectura**    | DDD + Clean + Hexagonal |
+| Componente          | Descripción                  |
+| ------------------- | ---------------------------- |
+| **Framework**       | NestJS 11 + Fastify          |
+| **Lenguaje**        | TypeScript 5                 |
+| **Runtime**         | Node.js 22                   |
+| **Gestor**          | pnpm 9                       |
+| **IA**              | OpenAI GPT + Google Gemini   |
+| **Auth**            | JWT (passport-jwt)           |
+| **Testing**         | Jest + Supertest             |
+| **CI/CD**           | GitHub Actions               |
+| **Infraestructura** | Google Cloud Run + Terraform |
+| **Arquitectura**    | DDD + Clean + Hexagonal      |
 
 ---
 
